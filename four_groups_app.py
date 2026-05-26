@@ -4,6 +4,10 @@ import json
 import re
 from datetime import datetime
 from openai import OpenAI
+import tempfile
+import zipfile
+import glob
+import base64
 
 # ==================== 页面设置 ====================
 st.set_page_config(page_title="设计实验", layout="wide")
@@ -225,4 +229,53 @@ if st.session_state.phase == 2:
             json.dump(data, f, ensure_ascii=False, indent=2)
         st.success("方案已提交，感谢你的参与！")
         st.info("你现在可以关闭本页面。")
+        # ==================== 主试专用数据下载（侧边栏） ====================
+st.sidebar.markdown("---")
+st.sidebar.header("🔐 主试数据管理")
+
+# 设置主试密码（你可以改成自己记得住的密码）
+MASTER_PASSWORD = "123456"
+
+if "show_download" not in st.session_state:
+    st.session_state.show_download = False
+
+password_input = st.sidebar.text_input("请输入主试密码：", type="password")
+if st.sidebar.button("验证密码"):
+    if password_input == MASTER_PASSWORD:
+        st.session_state.show_download = True
+        st.sidebar.success("密码正确，可下载数据")
+    else:
+        st.sidebar.error("密码错误")
+        st.session_state.show_download = False
+
+if st.session_state.show_download:
+    tmp_dir = tempfile.gettempdir()
+    if st.sidebar.button("📥 打包下载所有实验数据"):
+        json_files = glob.glob(os.path.join(tmp_dir, "experiment_*.json"))
+        if json_files:
+            zip_path = os.path.join(tmp_dir, "all_experiments.zip")
+            with zipfile.ZipFile(zip_path, 'w') as zf:
+                for f in json_files:
+                    zf.write(f, os.path.basename(f))
+            with open(zip_path, "rb") as f:
+                st.sidebar.download_button(
+                    label="点击下载 ZIP 文件",
+                    data=f,
+                    file_name="all_experiments.zip",
+                    mime="application/zip"
+                )
+            st.sidebar.info(f"共 {len(json_files)} 条数据已打包")
+        else:
+            st.sidebar.warning("暂无提交数据")
+    
+    # 显示已有数据列表
+    if st.sidebar.button("📋 查看已有提交编号"):
+        json_files = glob.glob(os.path.join(tmp_dir, "experiment_*.json"))
+        if json_files:
+            ids = [os.path.basename(f).replace("experiment_", "").replace(".json", "") for f in json_files]
+            st.sidebar.write("已提交的用户编号：")
+            for uid in sorted(ids):
+                st.sidebar.text(f"✅ {uid}")
+        else:
+            st.sidebar.warning("暂无提交数据")
         st.stop()
