@@ -42,7 +42,7 @@ if st.session_state.user_id is None:
                 st.stop()
 
             st.session_state.user_id = uid_input.strip()
-            st.session_state.phase = 1
+            st.session_state.phase = 0
             st.session_state.phase1_text = ""
             st.session_state.phase2_text = ""
             st.session_state.messages = []
@@ -80,7 +80,16 @@ def activate_ai_greeting():
             )
         st.session_state.messages.append({"role": "assistant", "content": resp.choices[0].message.content})
         st.session_state.greeted = True
-
+# ==================== 前测问卷 (phase=0) ====================
+if st.session_state.phase == 0:
+    st.title("实验前问卷")
+    st.markdown("请点击下方链接完成前测问卷，完成后回到本页面点击下方按钮。")
+    st.markdown("[📝 打开前测问卷](https://v.wjx.cn/vm/PcYNF25.aspx# )")
+    st.divider()
+    if st.button("我已完成前测问卷，开始实验"):
+        st.session_state.phase = 1
+        st.rerun()
+    st.stop()
 # ==================== 阶段一界面 ====================
 if st.session_state.phase == 1:
     title = "阶段一"
@@ -142,10 +151,26 @@ if st.session_state.phase == 1:
             if ai_phase1:
                 st.session_state.messages = []
                 st.session_state.greeted = False
-            st.session_state.phase = 2
+            st.session_state.phase = 1.5
             st.rerun()
     st.stop()
-
+# ==================== 阶段一后问卷 (phase=1.5) ====================
+if st.session_state.phase == 1.5:
+    st.title("阶段一结束，请填写问卷")
+    st.markdown("请点击下方链接完成问卷，完成后回到本页面点击下方按钮。")
+    
+    # 根据阶段一是否有AI显示不同问卷
+    if ai_phase1:
+        survey_link = "https://v.wjx.cn/vm/OCT5rUZ.aspx#"
+    else:
+        survey_link = "https://v.wjx.cn/vm/eI3byHI.aspx#"
+        
+    st.markdown(f"[📝 打开问卷]({survey_link})")
+    st.divider()
+    if st.button("我已完成问卷，进入阶段二"):
+        st.session_state.phase = 2
+        st.rerun()
+    st.stop()
 # ==================== 阶段二界面 ====================
 if st.session_state.phase == 2:
     title = "阶段二"
@@ -205,30 +230,11 @@ if st.session_state.phase == 2:
         p2 = st.text_area("答案", value=initial_text, height=400, key="p2")
         st.session_state.phase2_text = p2
 
-    if st.button("✅ 提交最终方案"):
-        final_text = st.session_state.phase2_text
-        if ai_phase2:
-            display = re.sub(r'【(.*?)】', r'<span style="color:red">【\1】</span>', final_text)
-            st.markdown("###方案预览（红色部分为你自己的想法）")
-            st.markdown(display, unsafe_allow_html=True)
-        else:
-            st.markdown("### 你提交的内容")
-            st.markdown(final_text)
-
-        data = {
-            "user_id": st.session_state.user_id,
-            "group": st.session_state.group,
-            "phase1_text": st.session_state.phase1_text,
-            "phase2_text": st.session_state.phase2_text,
-            "messages": st.session_state.messages if (ai_phase1 or ai_phase2) else [],
-            "timestamp": datetime.now().isoformat()
-        }
-        import tempfile
-        filename = os.path.join(tempfile.gettempdir(), f"experiment_{st.session_state.user_id}.json")
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        st.success("方案已提交，感谢你的参与！")
-        st.info("你现在可以关闭本页面。")
+        if st.button("✅ 提交方案，进入后测问卷"):
+        # 暂存阶段二文本，用于最终保存
+        st.session_state.final_text = st.session_state.phase2_text
+        st.session_state.phase = 2.5
+        st.rerun()
         # ==================== 主试专用数据下载（侧边栏） ====================
 st.sidebar.markdown("---")
 st.sidebar.header("🔐 主试数据管理")
@@ -279,3 +285,51 @@ if st.session_state.show_download:
         else:
             st.sidebar.warning("暂无提交数据")
         st.stop()
+# ==================== 阶段二后问卷 (phase=2.5) ====================
+if st.session_state.phase == 2.5:
+    st.title("实验即将结束，请填写最后问卷")
+    st.markdown("请点击下方链接完成问卷，完成后回到本页面点击下方按钮。")
+    
+    # 根据阶段二是否有AI显示不同问卷
+    if ai_phase2:
+        survey_link = "https://v.wjx.cn/vm/tc5gWto.aspx#"
+    else:
+        survey_link = "https://v.wjx.cn/vm/thj2x5g.aspx#"
+        
+    st.markdown(f"[📝 打开问卷]({survey_link})")
+    st.divider()
+    if st.button("提交问卷并完成实验"):
+        st.session_state.phase = 3
+        st.rerun()
+    st.stop()
+
+# ==================== 最终提交与保存 (phase=3) ====================
+if st.session_state.phase == 3:
+    # 预览（若阶段二有AI，显示红色标记）
+    final_text = st.session_state.final_text
+    if ai_phase2:
+        display = re.sub(r'【(.*?)】', r'<span style="color:red">【\1】</span>', final_text)
+        st.markdown("### 方案预览（红色部分为你自己的想法）")
+        st.markdown(display, unsafe_allow_html=True)
+    else:
+        st.markdown("### 你提交的最终方案")
+        st.markdown(final_text)
+
+    # 组装数据
+    data = {
+        "user_id": st.session_state.user_id,
+        "group": st.session_state.group,
+        "phase1_text": st.session_state.phase1_text,
+        "phase2_text": final_text,
+        "messages": st.session_state.messages if (ai_phase1 or ai_phase2) else [],
+        "timestamp": datetime.now().isoformat()
+    }
+    import tempfile
+    filename = os.path.join(tempfile.gettempdir(), f"experiment_{st.session_state.user_id}.json")
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    st.balloons()
+    st.success("所有步骤已完成，感谢你的参与！")
+    st.info("你现在可以关闭本页面。")
+    st.stop()
