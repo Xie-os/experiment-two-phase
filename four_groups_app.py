@@ -185,7 +185,7 @@ if st.session_state.phase == 2:
     st.title(title)
 
     st.markdown("### 📋 任务说明")
-       if ai_phase2:
+    if ai_phase2:
         st.markdown("""
         **阶段二：方案细化与完整呈现**  
         基于阶段一的构思，请进一步深化你的设计方案，包含以下要点：  
