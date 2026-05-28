@@ -204,11 +204,12 @@ if st.session_state.phase == 2:
         - 阶段一的内容已自动带入，你可以在此基础上修改完善。
         """)
 
+     # 构造阶段二的初始文本（含分隔符）
     initial_text = st.session_state.phase1_text
-if st.session_state.phase2_text:
-    initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50 + "\n\n" + st.session_state.phase2_text
-else:
-    initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50
+    if st.session_state.phase2_text:
+        initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50 + "\n\n" + st.session_state.phase2_text
+    else:
+        initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50
 
     if ai_phase2:
         activate_ai_greeting()
