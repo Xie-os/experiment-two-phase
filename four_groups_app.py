@@ -232,7 +232,7 @@ if st.session_state.phase == 2:
 
         if st.button("✅ 提交方案，进入后测问卷"):
         # 暂存阶段二文本，用于最终保存
-        st.session_state.final_text = st.session_state.phase2_text
+            st.session_state.final_text = st.session_state.phase2_text
         st.session_state.phase = 2.5
         st.rerun()
         # ==================== 主试专用数据下载（侧边栏） ====================
