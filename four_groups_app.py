@@ -100,13 +100,17 @@ if st.session_state.phase == 1:
     st.title(title)
 
     st.markdown("### 📋 任务说明")
-    st.markdown("""
-    **阶段一：问题发现与初步构思**  
-    请你围绕“设计手机壳非电子的附加功能”这一主题，完成以下内容：  
-    请看着你现在的手机，发挥想象力：在不添加任何芯片或电子元件的前提下，单纯靠物理结构、材质或造型创意，手机壳还能揉合什么好玩、有用的功能？请尽可能快地列出多个手机壳创意改造点子（一句话一个，越多越好）。
-    - 若当前阶段提供AI助手，你可以自由与AI讨论并整合建议到编辑区。
-    - 若当前阶段独立完成，请依靠自己的知识和搜集相关资料作答。
-    """)
+      # 根据是否有AI显示不同的指导语
+    if ai_phase1:
+        st.markdown("""
+        **阶段一：问题发现与初步构思**  
+        请根据要求完成以下任务。你可以自由与AI讨论并整合建议。
+        """)
+    else:
+        st.markdown("""
+        **阶段一：问题发现与初步构思**  
+        请根据要求完成以下任务。请依靠自己的知识和搜集相关资料作答，不可以使用任何AI工具。
+        """)
 
     if ai_phase1:
         activate_ai_greeting()
@@ -181,14 +185,22 @@ if st.session_state.phase == 2:
     st.title(title)
 
     st.markdown("### 📋 任务说明")
-    st.markdown("""
-    **阶段二：方案细化与完整呈现**  
-    基于阶段一的构思，请进一步深化你的设计方案，包含以下要点：  
-   请从刚才阶段一的点子中选出一个。分点罗列，详细明这个手机壳的附加功能具体是如何使用或应用的。例如：功能详述、结构/材质说明、使用场景和优势等等。
-    - 若当前阶段提供AI助手，你可以自由与AI讨论并整合建议。
-    - 若独立完成，请依靠自己的思考作答。
-    - 阶段一的内容已自动带入，你可以在此基础上修改完善。
-    """)
+       if ai_phase2:
+        st.markdown("""
+        **阶段二：方案细化与完整呈现**  
+        基于阶段一的构思，请进一步深化你的设计方案，包含以下要点：  
+        请从刚才阶段一的想法点子中选出一个。分点罗列，详细说明这个手机壳的附加功能具体是如何使用或应用的。例如：功能详述、结构/材质说明、使用场景和优势等等。
+        - 你可以自由与AI讨论并整合建议。
+        - 阶段一的内容已自动带入，你可以在此基础上修改完善。
+        """)
+    else:
+        st.markdown("""
+        **阶段二：方案细化与完整呈现**  
+        基于阶段一的构思，请进一步深化你的设计方案，包含以下要点：  
+        请从刚才阶段一的想法点子中选出一个。分点罗列，详细说明这个手机壳的附加功能具体是如何使用或应用的。例如：功能详述、结构/材质说明、使用场景和优势等等。
+        - 请依靠自己的知识和搜集相关资料作答，不可以使用任何AI工具。
+        - 阶段一的内容已自动带入，你可以在此基础上修改完善。
+        """)
 
     initial_text = st.session_state.phase1_text
     if st.session_state.phase2_text:
@@ -224,17 +236,25 @@ if st.session_state.phase == 2:
             st.caption("可整合阶段一内容和AI建议。请用【】括起**你自己的原创想法**，提交后将显示为红色，以区别于AI的建议。")
             p2 = st.text_area("答案", value=initial_text, height=400, key="p2")
             st.session_state.phase2_text = p2
+            
+            # 提交按钮（有AI时）
+            if st.button("✅ 提交方案，进入后测问卷"):
+                st.session_state.final_text = st.session_state.phase2_text
+                st.session_state.phase = 2.5
+                st.rerun()
     else:
         st.subheader("📝 阶段二作答区（请独立完成，不要使用任何外部工具）")
         st.caption("阶段一的内容已显示，你可以继续编辑。")
         p2 = st.text_area("答案", value=initial_text, height=400, key="p2")
         st.session_state.phase2_text = p2
 
+       # 提交按钮（无AI时）
         if st.button("✅ 提交方案，进入后测问卷"):
-        # 暂存阶段二文本，用于最终保存
             st.session_state.final_text = st.session_state.phase2_text
-        st.session_state.phase = 2.5
-        st.rerun()
+            st.session_state.phase = 2.5
+            st.rerun()
+
+    st.stop()
         # ==================== 主试专用数据下载（侧边栏） ====================
 st.sidebar.markdown("---")
 st.sidebar.header("🔐 主试数据管理")
