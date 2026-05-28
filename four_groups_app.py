@@ -105,11 +105,13 @@ if st.session_state.phase == 1:
         st.markdown("""
         **阶段一：问题发现与初步构思**  
         请根据要求完成以下任务。你可以自由与AI讨论并整合建议。
+        请看着你现在的手机壳，发挥想象力：在不添加任何芯片或电子元件的前提下，单纯靠物理结构、材质或造型创意，手机壳还能揉合什么好玩、有用的功能？请尽可能快地列出多个手机壳创意改造点子（一句话一个，越多越好）。
         """)
     else:
         st.markdown("""
         **阶段一：问题发现与初步构思**  
         请根据要求完成以下任务。请依靠自己的知识和搜集相关资料作答，不可以使用任何AI工具。
+        请看着你现在的手机壳，发挥想象力：在不添加任何芯片或电子元件的前提下，单纯靠物理结构、材质或造型创意，手机壳还能揉合什么好玩、有用的功能？请尽可能快地列出多个手机壳创意改造点子（一句话一个，越多越好）。
         """)
 
     if ai_phase1:
@@ -139,7 +141,7 @@ if st.session_state.phase == 1:
                     st.markdown(ai_msg)
         with col_right:
             st.subheader("📝 阶段一作答区")
-            st.caption("在此整理你的思路（可结合AI建议）。用【】括起**你自己的原创想法**，最终提交时会显示为红色。")
+            st.caption("在此整理你的思路（可结合AI建议）。可以用【】括起**你自己的原创想法**，最终提交时会显示为红色。")
             p1 = st.text_area("答案", value=st.session_state.phase1_text, height=400, key="p1")
             st.session_state.phase1_text = p1
     else:
@@ -203,8 +205,10 @@ if st.session_state.phase == 2:
         """)
 
     initial_text = st.session_state.phase1_text
-    if st.session_state.phase2_text:
-        initial_text += "\n\n" + st.session_state.phase2_text
+if st.session_state.phase2_text:
+    initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50 + "\n\n" + st.session_state.phase2_text
+else:
+    initial_text += "\n\n" + "=" * 50 + "\n--- 阶段二新内容（请在下方继续完善） ---\n" + "=" * 50
 
     if ai_phase2:
         activate_ai_greeting()
@@ -233,7 +237,7 @@ if st.session_state.phase == 2:
                     st.markdown(ai_msg)
         with col_right:
             st.subheader("📝 阶段二作答区")
-            st.caption("可整合阶段一内容和AI建议。请用【】括起**你自己的原创想法**，提交后将显示为红色，以区别于AI的建议。")
+            st.caption("可整合阶段一内容和AI建议。可以用【】括起**你自己的原创想法**，提交后将显示为红色，以区别于AI的建议。")
             p2 = st.text_area("答案", value=initial_text, height=400, key="p2")
             st.session_state.phase2_text = p2
             
